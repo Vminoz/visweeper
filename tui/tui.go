@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"gosweeper/game"
+	"visweeper/game"
 
 	tea "github.com/charmbracelet/bubbletea"
 	lip "github.com/charmbracelet/lipgloss"

@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"gosweeper/game"
-	"gosweeper/tui"
+	"visweeper/game"
+	"visweeper/tui"
 )
 
 func main() {

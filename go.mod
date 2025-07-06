@@ -1,4 +1,4 @@
-module gosweeper
+module visweeper
 
 go 1.24.4
 
