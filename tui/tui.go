@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"visweeper/game"
@@ -132,8 +131,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.opts.Cheat {
 					s.showMines = !s.showMines
 				}
-			case "1", "2", "3", "4", "5", "6", "7", "8", "9", "0":
+			case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 				s.numBuff += k
+			case "0":
+				if s.numBuff != "" {
+					s.numBuff += "0"
+				}
 			}
 		}
 	case tickMsg:
@@ -276,9 +279,10 @@ func (m *model) drawNormalBanner(w int) string {
 	// L1
 	fs := fmt.Sprintf("%d/%d", m.Game.Flags, m.Game.Mines)
 	ts := formatDuration(m.Game.ElapsedTime)
-	partStyle := style.Width(w / 2)
-	flagsPart := partStyle.Align(lip.Left).Render(fs)
-	timerPart := partStyle.Align(lip.Right).Render(ts)
+	lsty := style.Width(w / 2).Align(lip.Left)
+	rsty := style.Width(w/2 + w%2).Align(lip.Right)
+	flagsPart := lsty.Align(lip.Left).Render(fs)
+	timerPart := rsty.Align(lip.Right).Render(ts)
 	line1 := lip.JoinHorizontal(lip.Top, flagsPart, timerPart)
 
 	// L2
@@ -295,13 +299,14 @@ func (m *model) drawNormalBanner(w int) string {
 		if totalClear > 0 {
 			progress = float64(revealed) / float64(totalClear)
 		}
-		progressBarWidth := w
-		progressChars := int(progress * float64(progressBarWidth))
+		progressChars := int(progress * float64(w))
 
-		p := strings.Repeat(" ", progressChars)
-		r := strings.Repeat(" ", progressBarWidth-progressChars)
-		p = style.Background(YELLOW).Render(p)
-		r = style.Background(GREY).Render(r)
+		barForeground := style.Width(w).Render(m.state.numBuff)
+		p := barForeground[:progressChars]
+		r := barForeground[progressChars:]
+		fg := style.Foreground(BLACK)
+		p = fg.Background(YELLOW).Render(p)
+		r = fg.Background(GREY).Render(r)
 
 		line2 = p + r
 	}
