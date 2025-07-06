@@ -12,6 +12,6 @@ visweeper
 
 ## Details
 
-Uses [Bubbletea](github.com/charmbracelet/bubbletea) and related libraries for TUI stuff!
+Uses [Bubbletea](https://github.com/charmbracelet/bubbletea) and related libraries for TUI stuff!
 
 
