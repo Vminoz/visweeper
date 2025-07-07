@@ -96,18 +96,15 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.moveCursor(arrow.dx, arrow.dy)
 		} else {
 			switch k {
+			case "d", " ":
+				m.detonate()
 			case "f":
 				m.flag()
 			case "r":
 				m.Game = game.New(g.Rows, g.Cols, g.Mines)
-				s.showMines = false
-			case "?":
-				s.showHelp = !s.showHelp
 			case "q", "ctrl+c", "esc":
 				m.done = true
 				return m, tea.Quit
-			case " ", "d":
-				m.detonate()
 			case "s":
 				if m.opts.Cheat {
 					s.showMines = !s.showMines
@@ -118,6 +115,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if s.numBuff != "" {
 					s.numBuff += "0"
 				}
+			case "?":
+				s.showHelp = !s.showHelp
 			}
 		}
 	case tickMsg:
@@ -154,7 +153,7 @@ func (m *model) View() string {
 		m.state.message = ""
 	}
 
-	if m.state.showHelp || m.Game.GameOver {
+	if m.state.showHelp {
 		help := m.drawHelp()
 		view = lip.JoinVertical(lip.Left, view, help)
 	}
@@ -310,20 +309,24 @@ func (m *model) drawGameOverBanner(w int) string {
 		fg = lossFrameColor
 	}
 	msgStyle := style.Foreground(fg)
-	timerStr := formatDuration(m.Game.ElapsedTime)
-
 	line1 := bannerStyle.Align(lip.Center).Render(msgStyle.Render(msg))
+
+	timerStr := formatDuration(m.Game.ElapsedTime)
 	line2 := bannerStyle.Align(lip.Right).Render(timerStr)
+
 	return lip.JoinVertical(lip.Left, line1, line2)
 }
 
 func (m *model) drawHelp() string {
 	var s []string
-	if !m.Game.GameOver {
-		s = append(s, style.Foreground(YELLOW).Render("F")+"lag")
+	highlight := style.Foreground(YELLOW)
+	s = append(s, highlight.Render("d")+"etonate")
+	s = append(s, highlight.Render("f")+"lag")
+	s = append(s, highlight.Render("r")+"estart")
+	s = append(s, highlight.Render("q")+"uit")
+	if m.opts.Cheat {
+		s = append(s, style.Foreground(CYAN).Render("s")+"how mines")
 	}
-	s = append(s, style.Foreground(YELLOW).Render("R")+"eplay")
-	s = append(s, style.Foreground(YELLOW).Render("Q")+"uit")
 	return lip.JoinVertical(lip.Left, s...)
 }
 
