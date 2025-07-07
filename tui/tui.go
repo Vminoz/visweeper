@@ -13,17 +13,10 @@ import (
 )
 
 const (
-	// Generic colors
-	BLACK = lip.Color("0")
-	// ANSI intense
-	GREY   = lip.Color("8")
-	RED    = lip.Color("9")
-	GREEN  = lip.Color("10")
-	YELLOW = lip.Color("11")
-	BLUE   = lip.Color("12")
-	PURPLE = lip.Color("13")
-	CYAN   = lip.Color("14")
-	WHITE  = lip.Color("15")
+	// Frame colors
+	defaultFrameColor = GREY
+	winFrameColor     = GREEN
+	lossFrameColor    = RED
 )
 
 var (
@@ -32,11 +25,6 @@ var (
 	cellStyle       = style.MarginRight(1)
 	hiddenCellStyle = cellStyle.Foreground(GREY)
 	cursorStyle     = cellStyle.Background(WHITE).Foreground(BLACK)
-
-	// Frame colors
-	defaultFrameColor = GREY
-	winFrameColor     = GREEN
-	lossFrameColor    = RED
 )
 
 type GameOptions struct {
@@ -73,15 +61,10 @@ func New(g *game.Game) *model {
 	}
 }
 
+// Lifecycle ------------------------------------------------------------------
 func (m *model) Init() tea.Cmd {
 	m.state.ticker = time.NewTicker(time.Second)
 	return m.tick()
-}
-
-func (m *model) detonate() {
-	if !m.Game.GameOver {
-		m.Game.Reveal(m.state.CursorY, m.state.CursorX)
-	}
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -114,9 +97,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			switch k {
 			case "f":
-				if !g.GameOver {
-					g.Flag(s.CursorY, s.CursorX)
-				}
+				m.flag()
 			case "r":
 				m.Game = game.New(g.Rows, g.Cols, g.Mines)
 				s.showMines = false
@@ -189,14 +170,17 @@ func (m *model) tick() tea.Cmd {
 	})
 }
 
-func clamp(val, min, max int) int {
-	if val < min {
-		return min
+// Actions --------------------------------------------------------------------
+func (m *model) flag() {
+	if !m.Game.GameOver {
+		m.Game.Flag(m.state.CursorY, m.state.CursorX)
 	}
-	if val >= max {
-		return max - 1
+}
+
+func (m *model) detonate() {
+	if !m.Game.GameOver {
+		m.Game.Reveal(m.state.CursorY, m.state.CursorX)
 	}
-	return val
 }
 
 func (m *model) moveCursor(dx, dy int) {
@@ -215,6 +199,7 @@ func (m *model) moveCursor(dx, dy int) {
 	s.CursorY = clamp(s.CursorY+dy, 0, m.Game.Rows)
 }
 
+// Drawing --------------------------------------------------------------------
 func (m *model) drawBoard() string {
 	var rows []string
 	for r := 0; r < m.Game.Rows; r++ {
@@ -242,7 +227,7 @@ func (m *model) renderCell(r, c int) string {
 	} else if cell.IsRevealed {
 		if cell.NeighborMines > 0 {
 			content = fmt.Sprintf("%d", cell.NeighborMines)
-			style = cellStyle.Foreground(getColor(cell.NeighborMines))
+			style = cellStyle.Foreground(getNumberColor(cell.NeighborMines))
 		} else {
 			content = " "
 			style = cellStyle
@@ -332,12 +317,6 @@ func (m *model) drawGameOverBanner(w int) string {
 	return lip.JoinVertical(lip.Left, line1, line2)
 }
 
-func formatDuration(d time.Duration) string {
-	minutes := int(d.Minutes())
-	seconds := int(d.Seconds()) % 60
-	return fmt.Sprintf("%02d:%02d", minutes, seconds)
-}
-
 func (m *model) drawHelp() string {
 	var s []string
 	if !m.Game.GameOver {
@@ -348,7 +327,7 @@ func (m *model) drawHelp() string {
 	return lip.JoinVertical(lip.Left, s...)
 }
 
-func getColor(n int) lip.TerminalColor {
+func getNumberColor(n int) color {
 	switch n {
 	case 1:
 		return BLUE
@@ -371,7 +350,7 @@ func getColor(n int) lip.TerminalColor {
 	}
 }
 
-func getFrameColor(g *game.Game) lip.TerminalColor {
+func getFrameColor(g *game.Game) color {
 	if g.GameOver {
 		if g.GameWon {
 			return winFrameColor
@@ -382,6 +361,7 @@ func getFrameColor(g *game.Game) lip.TerminalColor {
 	return defaultFrameColor
 }
 
+// Main entrypoint ------------------------------------------------------------
 func Run(g *game.Game, options GameOptions) {
 	m := New(g)
 	m.opts = options
