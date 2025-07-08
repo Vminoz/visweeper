@@ -1,10 +1,10 @@
-package tui
+package utils
 
 import (
 	lip "github.com/charmbracelet/lipgloss"
 )
 
-type color lip.TerminalColor
+type Color lip.TerminalColor
 
 const (
 	// Generic

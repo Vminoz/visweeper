@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"visweeper/game"
-	"visweeper/tui"
+
+	"visweeper/internal/game"
+	"visweeper/tui/gameview"
 )
 
 func main() {
-	sizeS := flag.Bool("S", false, "Small  (10x10) (default)")
+	flag.Bool("S", false, "Small  (10x10) (default)")
 	sizeM := flag.Bool("M", false, "Medium (16x16)")
 	sizeL := flag.Bool("L", false, "Large  (16x30)")
 	sizeXL := flag.Bool("X", false, "XL    (36x36)")
@@ -19,9 +20,7 @@ func main() {
 
 	rows, cols := 10, 10
 
-	if *sizeS {
-		rows, cols = 10, 10
-	} else if *sizeM {
+	if *sizeM {
 		rows, cols = 16, 16
 	} else if *sizeL {
 		rows, cols = 16, 30
@@ -32,9 +31,10 @@ func main() {
 	mines := int(float32(rows*cols) * float32(*minePercent) / 100.0)
 
 	g := game.New(rows, cols, mines)
-	opts := tui.GameOptions{
+	opts := gameview.GameOptions{
 		Cheat:        *cheat,
 		UseArrowKeys: *arrowKeys,
 	}
-	tui.Run(g, opts)
+
+	gameview.Run(g, opts)
 }

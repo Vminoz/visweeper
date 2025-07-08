@@ -1,4 +1,4 @@
-package tui
+package gameview
 
 import (
 	"fmt"
@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"visweeper/game"
+	"visweeper/internal/game"
+	"visweeper/tui/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	lip "github.com/charmbracelet/lipgloss"
@@ -14,17 +15,17 @@ import (
 
 const (
 	// Frame colors
-	defaultFrameColor = GREY
-	winFrameColor     = GREEN
-	lossFrameColor    = RED
+	defaultFrameColor = utils.GREY
+	winFrameColor     = utils.GREEN
+	lossFrameColor    = utils.RED
 )
 
 var (
 	// Styles
 	style           = lip.NewStyle()
 	cellStyle       = style.MarginRight(1)
-	hiddenCellStyle = cellStyle.Foreground(GREY)
-	cursorStyle     = cellStyle.Background(WHITE).Foreground(BLACK)
+	hiddenCellStyle = cellStyle.Foreground(utils.GREY)
+	cursorStyle     = cellStyle.Background(utils.WHITE).Foreground(utils.BLACK)
 )
 
 type GameOptions struct {
@@ -44,31 +45,31 @@ type gameState struct {
 
 type model struct {
 	Game  *game.Game
-	state gameState
+	state *gameState
 	opts  GameOptions
 	done  bool
 }
 
-func New(g *game.Game) *model {
+func New(g *game.Game) model {
 	state := gameState{
 		CursorX: g.Cols/2 - 1,
 		CursorY: g.Rows/2 - 1,
 	}
 
-	return &model{
+	return model{
 		Game:  g,
-		state: state,
+		state: &state,
 	}
 }
 
 // Lifecycle ------------------------------------------------------------------
-func (m *model) Init() tea.Cmd {
+func (m model) Init() tea.Cmd {
 	m.state.ticker = time.NewTicker(time.Second)
 	return m.tick()
 }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	s := &m.state
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	s := m.state
 	g := m.Game
 	movementKeys := map[string]struct{ dx, dy int }{
 		"h": {-1, 0},
@@ -125,10 +126,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.tick()
 	}
+	if m.Game.GameWon {
+		return m, tea.Quit
+	}
 	return m, nil
 }
 
-func (m *model) View() string {
+func (m model) View() string {
 	if m.done {
 		return ""
 	}
@@ -163,27 +167,27 @@ func (m *model) View() string {
 
 type tickMsg time.Time
 
-func (m *model) tick() tea.Cmd {
+func (m model) tick() tea.Cmd {
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return tickMsg(t)
 	})
 }
 
 // Actions --------------------------------------------------------------------
-func (m *model) flag() {
+func (m model) flag() {
 	if !m.Game.GameOver {
 		m.Game.Flag(m.state.CursorY, m.state.CursorX)
 	}
 }
 
-func (m *model) detonate() {
+func (m model) detonate() {
 	if !m.Game.GameOver {
 		m.Game.Reveal(m.state.CursorY, m.state.CursorX)
 	}
 }
 
-func (m *model) moveCursor(dx, dy int) {
-	s := &m.state
+func (m model) moveCursor(dx, dy int) {
+	s := m.state
 	if s.numBuff != "" {
 		repeat, err := strconv.Atoi(s.numBuff)
 		if err == nil {
@@ -194,12 +198,12 @@ func (m *model) moveCursor(dx, dy int) {
 			s.message += "failed to use numBuff: " + err.Error()
 		}
 	}
-	s.CursorX = clamp(s.CursorX+dx, 0, m.Game.Cols)
-	s.CursorY = clamp(s.CursorY+dy, 0, m.Game.Rows)
+	s.CursorX = utils.Clamp(s.CursorX+dx, 0, m.Game.Cols)
+	s.CursorY = utils.Clamp(s.CursorY+dy, 0, m.Game.Rows)
 }
 
 // Drawing --------------------------------------------------------------------
-func (m *model) drawBoard() string {
+func (m model) drawBoard() string {
 	var rows []string
 	for r := 0; r < m.Game.Rows; r++ {
 		row := " "
@@ -211,17 +215,17 @@ func (m *model) drawBoard() string {
 	return lip.JoinVertical(lip.Left, rows...)
 }
 
-func (m *model) renderCell(r, c int) string {
+func (m model) renderCell(r, c int) string {
 	cell := m.Game.Board[r][c]
 	var content string
 	var style lip.Style
 
 	if (m.state.showMines || m.Game.GameOver) && cell.IsMine {
 		content = "⁘"
-		style = cellStyle.Foreground(RED)
+		style = cellStyle.Foreground(utils.RED)
 		if m.Game.GameWon {
 			content = "◎"
-			style = style.Foreground(WHITE)
+			style = style.Foreground(utils.WHITE)
 		}
 	} else if cell.IsRevealed {
 		if cell.NeighborMines > 0 {
@@ -234,9 +238,9 @@ func (m *model) renderCell(r, c int) string {
 	} else if cell.IsFlagged {
 		content = "F"
 		if m.Game.GameOver && cell.IsMine {
-			style = cellStyle.Foreground(GREEN)
+			style = cellStyle.Foreground(utils.GREEN)
 		} else {
-			style = cellStyle.Foreground(YELLOW)
+			style = cellStyle.Foreground(utils.YELLOW)
 		}
 	} else {
 		content = "·"
@@ -250,7 +254,7 @@ func (m *model) renderCell(r, c int) string {
 	return style.Render(content)
 }
 
-func (m *model) drawBanner() string {
+func (m model) drawBanner() string {
 	w := m.Game.Cols*2 + 1
 	if m.Game.GameOver {
 		return m.drawGameOverBanner(w)
@@ -259,10 +263,10 @@ func (m *model) drawBanner() string {
 	}
 }
 
-func (m *model) drawNormalBanner(w int) string {
+func (m model) drawNormalBanner(w int) string {
 	// L1
 	fs := fmt.Sprintf("%d/%d", m.Game.Flags, m.Game.Mines)
-	ts := formatDuration(m.Game.ElapsedTime)
+	ts := utils.FormatDuration(m.Game.ElapsedTime)
 	lsty := style.Width(w / 2).Align(lip.Left)
 	rsty := style.Width(w/2 + w%2).Align(lip.Right)
 	flagsPart := lsty.Align(lip.Left).Render(fs)
@@ -273,7 +277,7 @@ func (m *model) drawNormalBanner(w int) string {
 	line2 := ""
 	if m.state.message != "" && len(m.state.message) < w {
 		// Flash message
-		line2 = style.Width(w).AlignHorizontal(lip.Center).Foreground(RED).Background(WHITE).Render(m.state.message)
+		line2 = style.Width(w).AlignHorizontal(lip.Center).Foreground(utils.RED).Background(utils.WHITE).Render(m.state.message)
 		m.state.message = ""
 	} else {
 		// Progress bar
@@ -288,19 +292,19 @@ func (m *model) drawNormalBanner(w int) string {
 		barForeground := style.Width(w).Render(m.state.numBuff)
 		p := barForeground[:progressChars]
 		r := barForeground[progressChars:]
-		fg := style.Foreground(BLACK)
-		p = fg.Background(YELLOW).Render(p)
-		r = fg.Background(GREY).Render(r)
+		fg := style.Foreground(utils.BLACK)
+		p = fg.Background(utils.YELLOW).Render(p)
+		r = fg.Background(utils.GREY).Render(r)
 
 		line2 = p + r
 	}
 	return lip.JoinVertical(lip.Left, line1, line2)
 }
 
-func (m *model) drawGameOverBanner(w int) string {
+func (m model) drawGameOverBanner(w int) string {
 	bannerStyle := style.Width(w)
 	msg := ""
-	fg := WHITE
+	fg := utils.WHITE
 	if m.Game.GameWon {
 		msg = "Win!"
 		fg = winFrameColor
@@ -311,49 +315,49 @@ func (m *model) drawGameOverBanner(w int) string {
 	msgStyle := style.Foreground(fg)
 	line1 := bannerStyle.Align(lip.Center).Render(msgStyle.Render(msg))
 
-	timerStr := formatDuration(m.Game.ElapsedTime)
+	timerStr := utils.FormatDuration(m.Game.ElapsedTime)
 	line2 := bannerStyle.Align(lip.Right).Render(timerStr)
 
 	return lip.JoinVertical(lip.Left, line1, line2)
 }
 
-func (m *model) drawHelp() string {
+func (m model) drawHelp() string {
 	var s []string
-	highlight := style.Foreground(YELLOW)
+	highlight := style.Foreground(utils.YELLOW)
 	s = append(s, highlight.Render("d")+"etonate")
 	s = append(s, highlight.Render("f")+"lag")
 	s = append(s, highlight.Render("r")+"estart")
 	s = append(s, highlight.Render("q")+"uit")
 	if m.opts.Cheat {
-		s = append(s, style.Foreground(CYAN).Render("s")+"how mines")
+		s = append(s, style.Foreground(utils.CYAN).Render("s")+"how mines")
 	}
 	return lip.JoinVertical(lip.Left, s...)
 }
 
-func getNumberColor(n int) color {
+func getNumberColor(n int) utils.Color {
 	switch n {
 	case 1:
-		return BLUE
+		return utils.BLUE
 	case 2:
-		return GREEN
+		return utils.GREEN
 	case 3:
-		return RED
+		return utils.RED
 	case 4:
-		return PURPLE
+		return utils.PURPLE
 	case 5:
-		return CYAN
+		return utils.CYAN
 	case 6:
-		return YELLOW
+		return utils.YELLOW
 	case 7:
-		return WHITE
+		return utils.WHITE
 	case 8:
-		return RED
+		return utils.RED
 	default:
-		return GREY
+		return utils.GREY
 	}
 }
 
-func getFrameColor(g *game.Game) color {
+func getFrameColor(g *game.Game) utils.Color {
 	if g.GameOver {
 		if g.GameWon {
 			return winFrameColor
@@ -365,13 +369,14 @@ func getFrameColor(g *game.Game) color {
 }
 
 // Main entrypoint ------------------------------------------------------------
-func Run(g *game.Game, options GameOptions) {
+func Run(g *game.Game, options GameOptions) *game.Game {
 	m := New(g)
 	m.opts = options
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	_, err := p.Run()
+	finalModel, err := p.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
 	}
+	return finalModel.(*model).Game
 }
