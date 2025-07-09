@@ -4,7 +4,7 @@ Minesweepr TUI with forced vi-like cursor movement (`hjkl`).
 ![Screenshot-L](https://github.com/user-attachments/assets/417a3d77-44cc-4e50-8f6d-e5427052d2ff)
 
 ## Install and play
-
+Assuming you an appropriate version of go installed:
 ```sh
 go install github.com/vminoz/visweeper@latest
 visweeper
@@ -34,12 +34,12 @@ visweeper <flags>
 Hit `?` to show controls.
 
 #### Leaderboard View
-| Key      | Action                                                   |
-| ---      | ---                                                      |
-| `Tab`    | Cycle focus between table and name input (if exists)     |
-| `space`  | Cycle through board sizes (if name not waiting for name) |
-| `r`      | Restart/Run a game with the current size                 |
-| `ctrl+d` | Clear leaderboard for current size (permanently)         |
+| Key      | Action                                           | Condition        |
+| ---      | ---                                              | ---              |
+| `Tab`    | Cycle focus between table and name input         | name box visible |
+| `space`  | Cycle through board sizes                        | name box hidden  |
+| `r`      | Restart/Run a game with the current size         | table focused    |
+| `ctrl+d` | Clear leaderboard for current size (permanently) | table focused    |
 
 ## Details
 - Uses [Bubbletea](https://github.com/charmbracelet/bubbletea) and related libraries for TUI stuff!
