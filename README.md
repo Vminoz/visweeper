@@ -1,6 +1,7 @@
 # Visweeper
 
 Minesweepr TUI with forced vi-like cursor movement (`hjkl`).
+![Screenshot-L](https://github.com/user-attachments/assets/417a3d77-44cc-4e50-8f6d-e5427052d2ff)
 
 ## Install and play
 
