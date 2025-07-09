@@ -1,4 +1,4 @@
-module visweeper
+module github.com/vminoz/visweeper
 
 go 1.24.4
 
