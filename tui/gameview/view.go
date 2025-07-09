@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"visweeper/internal/game"
-	"visweeper/tui/utils"
+	"github.com/Vminoz/visweeper/internal/game"
+	"github.com/Vminoz/visweeper/tui/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	lip "github.com/charmbracelet/lipgloss"

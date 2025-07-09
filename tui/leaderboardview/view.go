@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"visweeper/internal/game"
-	"visweeper/internal/leaderboard"
-	"visweeper/tui/utils"
+
+	"github.com/Vminoz/visweeper/internal/game"
+	"github.com/Vminoz/visweeper/internal/leaderboard"
+	"github.com/Vminoz/visweeper/tui/utils"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"

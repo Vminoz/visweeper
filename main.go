@@ -4,10 +4,10 @@ import (
 	"flag"
 	"log"
 
-	"visweeper/internal/game"
-	"visweeper/internal/leaderboard"
-	"visweeper/tui/gameview"
-	"visweeper/tui/leaderboardview"
+	"github.com/Vminoz/visweeper/internal/game"
+	"github.com/Vminoz/visweeper/internal/leaderboard"
+	"github.com/Vminoz/visweeper/tui/gameview"
+	"github.com/Vminoz/visweeper/tui/leaderboardview"
 )
 
 const (
