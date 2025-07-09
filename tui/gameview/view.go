@@ -110,6 +110,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.opts.Cheat {
 					s.showMines = !s.showMines
 				}
+			case "w":
+				if m.opts.Cheat {
+					m.Game.GameOver = true
+					m.Game.GameWon = true
+				}
 			case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 				s.numBuff += k
 			case "0":
@@ -230,7 +235,7 @@ func (m model) renderCell(r, c int) string {
 	} else if cell.IsRevealed {
 		if cell.NeighborMines > 0 {
 			content = fmt.Sprintf("%d", cell.NeighborMines)
-			style = cellStyle.Foreground(getNumberColor(cell.NeighborMines))
+			style = cellStyle.Foreground(utils.GetNumberColor(cell.NeighborMines))
 		} else {
 			content = " "
 			style = cellStyle
@@ -334,29 +339,6 @@ func (m model) drawHelp() string {
 	return lip.JoinVertical(lip.Left, s...)
 }
 
-func getNumberColor(n int) utils.Color {
-	switch n {
-	case 1:
-		return utils.BLUE
-	case 2:
-		return utils.GREEN
-	case 3:
-		return utils.RED
-	case 4:
-		return utils.PURPLE
-	case 5:
-		return utils.CYAN
-	case 6:
-		return utils.YELLOW
-	case 7:
-		return utils.WHITE
-	case 8:
-		return utils.RED
-	default:
-		return utils.GREY
-	}
-}
-
 func getFrameColor(g *game.Game) utils.Color {
 	if g.GameOver {
 		if g.GameWon {
@@ -378,5 +360,5 @@ func Run(g *game.Game, options GameOptions) *game.Game {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
 	}
-	return finalModel.(*model).Game
+	return finalModel.(model).Game
 }

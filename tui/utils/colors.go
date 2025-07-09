@@ -19,3 +19,41 @@ const (
 	CYAN   = lip.Color("14")
 	WHITE  = lip.Color("15")
 )
+
+func GetNumberColor(n int) Color {
+	switch n {
+	case 1:
+		return BLUE
+	case 2:
+		return GREEN
+	case 3:
+		return RED
+	case 4:
+		return PURPLE
+	case 5:
+		return CYAN
+	case 6:
+		return YELLOW
+	case 7:
+		return WHITE
+	case 8:
+		return RED
+	default:
+		return GREY
+	}
+}
+
+func GetSizeColor(sizeName string) Color {
+	switch sizeName {
+	case "S":
+		return GREEN
+	case "M":
+		return YELLOW
+	case "L":
+		return RED
+	case "XL":
+		return PURPLE
+	default:
+		return WHITE
+	}
+}
