@@ -6,7 +6,6 @@ Minesweepr TUI with forced vi-like cursor movement (`hjkl`).
 ## Install and play
 
 ```sh
-export GOPRIVATE=github.com/vminoz/*  # until public
 go install github.com/vminoz/visweeper@latest
 visweeper
 ```
