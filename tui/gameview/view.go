@@ -241,7 +241,7 @@ func (m model) renderCell(r, c int) string {
 			style = cellStyle
 		}
 	} else if cell.IsFlagged {
-		content = "F"
+		content = "⚑"
 		if m.Game.GameOver && cell.IsMine {
 			style = cellStyle.Foreground(utils.GREEN)
 		} else {
